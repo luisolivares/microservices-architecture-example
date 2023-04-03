@@ -1,0 +1,30 @@
+version: "3.9"
+services:
+  challange:
+    container_name: challange
+    build: ./
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mysqldb
+    environment:
+      SPRING_APPLICATION_JSON: 
+        '{
+          "server.address" : "0.0.0.0",
+          "spring.datasource.url"  : "jdbc:mysql://mysqldb:3306/challange?allowPublicKeyRetrieval=true&useSSL=false"
+        }'
+        
+  mysqldb:
+    image: mysql:8.0.28
+    container_name: mysqldb
+    environment:
+      MYSQL_DATABASE: "challange"
+      MYSQL_ROOT_PASSWORD: "123456"
+      MYSQL_USER: "user"
+      MYSQL_PASSWORD: "123456"
+    ports:
+      - "3307:3306"
+    volumes:
+      - db:/var/lib/mysql
+volumes:
+  db:
