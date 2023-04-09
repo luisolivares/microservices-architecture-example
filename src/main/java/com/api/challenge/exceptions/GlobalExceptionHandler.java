@@ -35,13 +35,18 @@ public class GlobalExceptionHandler {
             errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
         }
         final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
-        return new ResponseEntity<>(apiError, headers, HttpStatus.BAD_REQUEST);
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, headers, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public final ResponseEntity<Map<String, List<String>>> handleRuntimeExceptions(RuntimeException ex, final HttpHeaders headers, final HttpServletRequest request) {
+    public final ResponseEntity<Object> handleRuntimeExceptions(RuntimeException ex, final HttpHeaders headers, final HttpServletRequest request) {
         List<String> errors = Collections.singletonList(ex.getMessage());
-        return new ResponseEntity<>(getErrorsMap(errors), headers, HttpStatus.INTERNAL_SERVER_ERROR);
+        final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), (List<String>) getErrorsMap(errors));
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, headers, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private Map<String, List<String>> getErrorsMap(List<String> errors) {
@@ -58,7 +63,9 @@ public class GlobalExceptionHandler {
             errors.add(violation.getRootBeanClass().getName() + " " + violation.getPropertyPath() + ": " + violation.getMessage());
         }
         final ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
-        return new ResponseEntity<>(apiError, headers, apiError.getStatus());
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, headers, apiError.getStatus());
     }
 
     // 404
@@ -67,7 +74,9 @@ public class GlobalExceptionHandler {
         log.info(ex.getClass().getName());
         final String error = "No handler found for " + ex.getHttpMethod() + " " + ex.getRequestURL();
         final ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, ex.getLocalizedMessage(), Arrays.asList(error));
-        return new ResponseEntity<>(apiError, headers, apiError.getStatus());
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, headers, apiError.getStatus());
     }
 
     // 405
@@ -81,8 +90,9 @@ public class GlobalExceptionHandler {
         builder.append(" Method is not supported for this request. Supported methods are ");
         ex.getSupportedHttpMethods().forEach(t -> builder.append(t + " "));
         final ApiError apiError = new ApiError(HttpStatus.METHOD_NOT_ALLOWED, ex.getLocalizedMessage(), Arrays.asList(builder.toString()));
-        new ApiError(HttpStatus.METHOD_NOT_ALLOWED, ex.getLocalizedMessage(), Arrays.asList(builder.toString()));
-        return new ResponseEntity<>(apiError, headers, apiError.getStatus());
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, headers, apiError.getStatus());
     }
 
     // 415
@@ -94,7 +104,9 @@ public class GlobalExceptionHandler {
         builder.append(" Media type is not supported. Supported media types are ");
         ex.getSupportedMediaTypes().forEach(t -> builder.append(t + " "));
         final ApiError apiError = new ApiError(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ex.getLocalizedMessage(), Arrays.asList(builder.substring(0, builder.length() - 2)));
-        return new ResponseEntity<>(apiError, headers, apiError.getStatus());
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, headers, apiError.getStatus());
     }
 
     // 500
@@ -103,7 +115,9 @@ public class GlobalExceptionHandler {
         log.info(ex.getClass().getName());
         log.error("error", ex);
         final ApiError apiError = new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getLocalizedMessage(), Arrays.asList("error occurred"));
-        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+        final ResponseApiDTO responseApiDTO = new ResponseApiDTO();
+        responseApiDTO.setError(apiError);
+        return new ResponseEntity<>(responseApiDTO, new HttpHeaders(), apiError.getStatus());
     }
 
 }
